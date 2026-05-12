@@ -18,4 +18,8 @@ todos.json
 # DB skills storage
 .db-skills
 
+# Claude Code
+CLAUDE.md
+.claude/
+
 deno.lock

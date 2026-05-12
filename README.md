@@ -375,7 +375,6 @@ pnpm test    # vitest run
 - [Netlify Database 本地开发](https://docs.netlify.com/build/data-and-storage/netlify-database/local-development/)
 - [DeepSeek API 文档](https://api-docs.deepseek.com/)
 - 架构详解：[`CODE-MODE.md`](./CODE-MODE.md)
-- [`CLAUDE.md`](./CLAUDE.md) — Claude Code 协作指南
 
 ## License
 
