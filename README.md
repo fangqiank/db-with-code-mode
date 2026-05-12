@@ -6,7 +6,7 @@
 
 - **自然语言查询** — 用中文或英文描述你想看的数据分析，AI 自动理解并生成报表
 - **多模型支持** — DeepSeek V4 Flash/Pro（默认）、Claude Haiku、GPT-4o、Gemini 2.5 Flash
-- **实时报表构建** — 报表组件随着 AI 生成逐步呈现，支持图表、指标卡、数据表、Markdown 等 18 种组件
+- **实时报表构建** — 报表组件随着 AI 生成逐步呈现，支持图表、指标卡、数据表、时间线、Markdown 等 19 种组件
 - **SSE 流式响应** — 基于 Server-Sent Events 的实时流式传输，思考过程可视化
 - **沙箱代码执行** — AI 生成的 TypeScript 代码在 `isolated-vm` 沙箱中安全运行
 - **本地 Postgres** — 通过 Netlify Vite 插件自动启动本地数据库，内置示例数据集
@@ -146,7 +146,7 @@ pnpm db:seed     # 导入示例数据
 │   │   │   ├── useReportState.ts   # 客户端报表状态
 │   │   │   ├── usePersistedReports.ts  # localStorage 持久化
 │   │   │   ├── useReportSSE.ts     # SSE 事件处理
-│   │   │   └── primitives/         # 18 种 UI 组件原语
+│   │   │   └── primitives/         # 19 种 UI 组件原语
 │   │   │       ├── layout/         # VBox, HBox, Grid, Card, Section
 │   │   │       ├── content/        # Text, Metric, Badge, Markdown, Divider, Spacer, Button
 │   │   │       ├── data/           # Chart, Sparkline, DataTable, Progress
@@ -179,13 +179,13 @@ pnpm db:seed     # 导入示例数据
 
 ## 报表系统
 
-### 组件类型（18 种）
+### 组件类型（19 种）
 
 | 分类 | 组件 | 说明 |
 |------|------|------|
 | **布局** | `vbox`, `hbox`, `grid`, `card`, `section` | 容器组件，可嵌套子组件 |
 | **内容** | `text`, `metric`, `badge`, `markdown`, `divider`, `spacer`, `button` | 叶子组件，显示内容 |
-| **数据** | `chart`, `sparkline`, `dataTable`, `progress` | 交互式数据可视化 |
+| **数据** | `chart`, `sparkline`, `dataTable`, `progress`, `timeline` | 交互式数据可视化 |
 | **特殊** | `placeholder`, `error`, `empty` | 状态占位组件 |
 
 ### 事件协议
