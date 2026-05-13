@@ -78,10 +78,6 @@ export function NodeRenderer({ node, nodes }: NodeRendererProps) {
       ? { ...node.props, handlers: node.handlers }
       : node.props;
 
-  if (node.type === "timeline") {
-    console.log("[NodeRenderer] timeline props:", JSON.stringify(componentProps, null, 2).slice(0, 500));
-  }
-
   return (
     <motion.div
       variants={nodeVariants}
