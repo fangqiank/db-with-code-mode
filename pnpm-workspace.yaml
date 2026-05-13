@@ -1,6 +1,0 @@
-allowBuilds:
-  '@parcel/watcher': true
-  esbuild: true
-  isolated-vm: true
-  protobufjs: true
-  sharp: true

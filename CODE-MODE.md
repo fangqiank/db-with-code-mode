@@ -157,8 +157,8 @@ The demo uses Netlify Database (Postgres) via the `@netlify/database` native dri
 - `@netlify/neon` — Netlify DB driver (was referenced by `db/index.ts` but missing)
 
 **Build config:**
-- `isolated-vm` added to `pnpm.onlyBuiltDependencies` in `package.json` (native module needs compilation)
-- `.nvmrc` pins Node.js 24 (required for `isolated-vm` — see [Prerequisites](#nodejs-24))
+- `isolated-vm` added to `pnpm.trustedDependencies` in `package.json` (native module needs compilation)
+- `.nvmrc` pins Node.js 22 (required for `isolated-vm`)
 
 ## UI Features
 

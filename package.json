@@ -81,7 +81,7 @@
     "vitest": "^3.0.5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
+    "trustedDependencies": [
       "@parcel/watcher",
       "esbuild",
       "isolated-vm",
