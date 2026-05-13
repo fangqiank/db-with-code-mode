@@ -19,7 +19,6 @@
     "db:seed:migration": "tsx db/generate-seed-migration.ts"
   },
   "dependencies": {
-    "@netlify/database": "^1.0.0",
     "@netlify/vite-plugin-tanstack-start": "^1.3.5",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@tailwindcss/vite": "^4.1.18",

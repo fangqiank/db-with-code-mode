@@ -2,7 +2,6 @@ import { readFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { z } from 'zod'
 import { toolDefinition } from '@tanstack/ai'
-import { getDatabase } from '@netlify/database'
 import { Pool } from 'pg'
 import {
   type Table,
@@ -11,10 +10,7 @@ import {
   convertRow,
 } from './database-constants'
 
-// Resolve external database URL.
-// IMPORTANT: Do NOT use NETLIFY_DB_URL — the Netlify Vite plugin overwrites it
-// with the local Postgres address at startup. Use DATABASE_URL instead.
-function resolveDbUrl(): string | undefined {
+function resolveDbUrl(): string {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL
   try {
     const envPath = resolve(process.cwd(), '.env.local')
@@ -24,21 +20,16 @@ function resolveDbUrl(): string | undefined {
       if (match) return match[1]
     }
   } catch { /* fall through */ }
-  return undefined
+  throw new Error('DATABASE_URL is not configured. Set it in .env.local or environment variables.')
 }
 
-let _externalPool: Pool | null = null
+let _pool: Pool | null = null
 
-function getPool(): Pool | { query: Pool['query'] } {
-  const dbUrl = resolveDbUrl()
-  console.log('[database-tools] resolved dbUrl:', dbUrl ? dbUrl.slice(0, 50) + '...' : 'undefined')
-  if (dbUrl) {
-    if (!_externalPool) {
-      _externalPool = new Pool({ connectionString: dbUrl })
-    }
-    return _externalPool
+function getPool(): Pool {
+  if (!_pool) {
+    _pool = new Pool({ connectionString: resolveDbUrl() })
   }
-  return getDatabase().pool as Pool
+  return _pool
 }
 
 export const queryTableTool = toolDefinition({
