@@ -18,14 +18,17 @@ export function applyUIEvent(state: ReportState, event: UIEvent): ReportState {
 
   switch (event.op) {
     case 'add': {
+      const existing = newNodes.get(event.id)
+      const isDuplicate = !!existing
+
       const node: UINode = {
         id: event.id,
         type: event.type,
-        props: event.props,
-        children: [],
-        handlers: event.handlers,
-        subscriptions: event.subscriptions,
-        dataSource: event.dataSource,
+        props: isDuplicate ? { ...existing.props, ...event.props } : event.props,
+        children: isDuplicate ? existing.children : [],
+        handlers: event.handlers ?? existing?.handlers,
+        subscriptions: event.subscriptions ?? existing?.subscriptions,
+        dataSource: event.dataSource ?? existing?.dataSource,
       }
 
       newNodes.set(event.id, node)
@@ -33,12 +36,15 @@ export function applyUIEvent(state: ReportState, event: UIEvent): ReportState {
       if (event.parentId) {
         const parent = newNodes.get(event.parentId)
         if (parent) {
+          const alreadyChild = parent.children.includes(event.id)
           newNodes.set(event.parentId, {
             ...parent,
-            children: [...parent.children, event.id],
+            children: alreadyChild
+              ? parent.children
+              : [...parent.children, event.id],
           })
         }
-      } else {
+      } else if (!isDuplicate && !newRootIds.includes(event.id)) {
         newRootIds = [...newRootIds, event.id]
       }
       break

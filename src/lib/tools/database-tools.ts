@@ -1,12 +1,45 @@
+import { readFileSync, existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { z } from 'zod'
 import { toolDefinition } from '@tanstack/ai'
 import { getDatabase } from '@netlify/database'
+import { Pool } from 'pg'
 import {
   type Table,
   TABLE_SCHEMAS,
   VALID_COLUMNS,
   convertRow,
 } from './database-constants'
+
+// Resolve external database URL.
+// IMPORTANT: Do NOT use NETLIFY_DB_URL — the Netlify Vite plugin overwrites it
+// with the local Postgres address at startup. Use DATABASE_URL instead.
+function resolveDbUrl(): string | undefined {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL
+  try {
+    const envPath = resolve(process.cwd(), '.env.local')
+    if (existsSync(envPath)) {
+      const content = readFileSync(envPath, 'utf-8')
+      const match = content.match(/^DATABASE_URL\s*=\s*"?([^"\n]+)"?\s*$/m)
+      if (match) return match[1]
+    }
+  } catch { /* fall through */ }
+  return undefined
+}
+
+let _externalPool: Pool | null = null
+
+function getPool(): Pool | { query: Pool['query'] } {
+  const dbUrl = resolveDbUrl()
+  console.log('[database-tools] resolved dbUrl:', dbUrl ? dbUrl.slice(0, 50) + '...' : 'undefined')
+  if (dbUrl) {
+    if (!_externalPool) {
+      _externalPool = new Pool({ connectionString: dbUrl })
+    }
+    return _externalPool
+  }
+  return getDatabase().pool as Pool
+}
 
 export const queryTableTool = toolDefinition({
   name: 'queryTable',
@@ -38,7 +71,7 @@ export const queryTableTool = toolDefinition({
     totalMatchingRows: z.number(),
   }),
 }).server(async ({ table, columns, where, orderBy, orderDirection, limit }) => {
-  const db = getDatabase()
+  const pool = getPool()
   const validCols = VALID_COLUMNS[table]
 
   // Determine SELECT columns
@@ -69,7 +102,7 @@ export const queryTableTool = toolDefinition({
 
   // Count matching rows
   const countQuery = `SELECT COUNT(*) as count FROM "${table}"${query.includes(' WHERE ') ? query.slice(query.indexOf(' WHERE')) : ''}`
-  const countResult = await db.pool.query(countQuery, params)
+  const countResult = await pool.query(countQuery, params)
   const totalMatchingRows = parseInt(countResult.rows[0].count, 10)
 
   // ORDER BY
@@ -84,7 +117,7 @@ export const queryTableTool = toolDefinition({
     query += ` LIMIT $${params.length}`
   }
 
-  const result = await db.pool.query(query, params)
+  const result = await pool.query(query, params)
   const rows = result.rows.map(convertRow)
 
   return { rows, totalMatchingRows }
@@ -107,7 +140,7 @@ export const getSchemaInfoTool = toolDefinition({
     rowCounts: z.record(z.string(), z.number()),
   }),
 }).server(async ({ table }) => {
-  const db = getDatabase()
+  const pool = getPool()
   const tables: Array<Table> = table
     ? [table]
     : ['customers', 'products', 'purchases']
@@ -115,7 +148,7 @@ export const getSchemaInfoTool = toolDefinition({
   const rowCounts: Record<string, number> = {}
   for (const t of tables) {
     schemas[t] = TABLE_SCHEMAS[t]
-    const result = await db.pool.query(`SELECT COUNT(*) as count FROM "${t}"`)
+    const result = await pool.query(`SELECT COUNT(*) as count FROM "${t}"`)
     rowCounts[t] = parseInt(result.rows[0].count, 10)
   }
   return { schemas, rowCounts }

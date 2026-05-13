@@ -79,6 +79,11 @@ const PROMPT_SUGGESTIONS = [
     prompt:
       'Create a report breaking down sales by customer city with charts showing which cities generate the most revenue.',
   },
+  {
+    label: 'Purchase Timeline',
+    prompt:
+      'Create a report with a timeline showing customer purchase history, aggregated by month.',
+  },
 ]
 
 function ToolCallDisplay({
@@ -297,6 +302,9 @@ function Messages({
                             rehypeSanitize,
                             rehypeHighlight,
                           ]}
+                          components={{
+                            p: ({ children }) => <div className="mb-2 last:mb-0">{children}</div>,
+                          }}
                         >
                           {part.content}
                         </ReactMarkdown>
@@ -461,7 +469,6 @@ function ReportingAgentPage() {
     deleteReport,
     dispatchUIEvent,
     clearAll: clearAllReports,
-    isHydrated,
   } = usePersistedReports()
 
   const hasActiveReport = activeReportId !== null

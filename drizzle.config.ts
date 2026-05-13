@@ -8,6 +8,7 @@ import { defineConfig } from "drizzle-kit";
 //      plugin when `pnpm dev` is running, the same source `pnpm db:apply` and
 //      `netlify database connect` already read from.
 function getConnectionString(): string {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
   if (process.env.NETLIFY_DB_URL) return process.env.NETLIFY_DB_URL;
 
   try {

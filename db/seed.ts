@@ -12,7 +12,7 @@ import { CUSTOMERS, PRODUCTS, PURCHASES } from './seed-data'
 // NETLIFY_DB_URL be present at module init, which `pnpm dev` doesn't
 // export to sibling shells.
 function getConnectionString(): string {
-  const fromEnv = process.env.NETLIFY_DB_URL ?? process.env.NETLIFY_DATABASE_URL
+  const fromEnv = process.env.DATABASE_URL ?? process.env.NETLIFY_DB_URL ?? process.env.NETLIFY_DATABASE_URL
   if (fromEnv) return fromEnv
 
   try {

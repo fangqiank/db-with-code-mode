@@ -19,6 +19,7 @@ import {
   Sparkline,
   DataTable,
   Progress,
+  Timeline,
   Placeholder,
   ErrorDisplay,
   Empty,
@@ -42,6 +43,7 @@ const componentMap: Record<ComponentType, React.ComponentType<any>> = {
   sparkline: Sparkline,
   dataTable: DataTable,
   progress: Progress,
+  timeline: Timeline,
   placeholder: Placeholder,
   error: ErrorDisplay,
   empty: Empty,
@@ -75,6 +77,10 @@ export function NodeRenderer({ node, nodes }: NodeRendererProps) {
     node.type === "button"
       ? { ...node.props, handlers: node.handlers }
       : node.props;
+
+  if (node.type === "timeline") {
+    console.log("[NodeRenderer] timeline props:", JSON.stringify(componentProps, null, 2).slice(0, 500));
+  }
 
   return (
     <motion.div

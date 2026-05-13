@@ -44,6 +44,8 @@ export type ComponentType =
   | 'sparkline'
   | 'dataTable'
   | 'progress'
+  // Timeline
+  | 'timeline'
   // Special
   | 'placeholder'
   | 'error'
@@ -243,6 +245,24 @@ export interface ProgressProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
+// Timeline Component
+export interface TimelineItem {
+  id: string
+  title: string
+  description?: string
+  timestamp?: string
+  icon?: string
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info'
+}
+
+export interface TimelineProps {
+  id?: string
+  parentId?: string
+  items: TimelineItem[]
+  layout?: 'vertical' | 'horizontal'
+  variant?: 'default' | 'outlined'
+}
+
 // Special Components
 export interface PlaceholderProps {
   id: string
@@ -285,6 +305,7 @@ export type ComponentPropsMap = {
   sparkline: SparklineProps
   dataTable: DataTableProps
   progress: ProgressProps
+  timeline: TimelineProps
   placeholder: PlaceholderProps
   error: ErrorDisplayProps
   empty: EmptyProps

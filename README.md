@@ -10,6 +10,7 @@
 - **SSE 流式响应** — 基于 Server-Sent Events 的实时流式传输，思考过程可视化
 - **沙箱代码执行** — AI 生成的 TypeScript 代码在 `isolated-vm` 沙箱中安全运行
 - **本地 Postgres** — 通过 Netlify Vite 插件自动启动本地数据库，内置示例数据集
+- **外部数据库支持** — 支持连接 Neon 等外部 Postgres，通过 `DATABASE_URL` 环境变量配置
 
 ## 技术栈
 
@@ -50,6 +51,9 @@ npm install -g netlify-cli
 ```env
 EXPERIMENTAL_NETLIFY_DB_ENABLED=1
 DEEPSEEK_API_KEY=sk-your-key-here
+
+# 可选：连接外部数据库（如 Neon），替代本地 Postgres
+# DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
 
 # 可选：其他 AI 提供商
 ANTHROPIC_API_KEY=...
@@ -185,7 +189,7 @@ pnpm db:seed     # 导入示例数据
 |------|------|------|
 | **布局** | `vbox`, `hbox`, `grid`, `card`, `section` | 容器组件，可嵌套子组件 |
 | **内容** | `text`, `metric`, `badge`, `markdown`, `divider`, `spacer`, `button` | 叶子组件，显示内容 |
-| **数据** | `chart`, `sparkline`, `dataTable`, `progress`, `timeline` | 交互式数据可视化 |
+| **数据** | `chart`, `sparkline`, `dataTable`, `progress`, `timeline` | 交互式数据可视化。Timeline 支持垂直/水平布局、每项独立颜色变体 |
 | **特殊** | `placeholder`, `error`, `empty` | 状态占位组件 |
 
 ### 事件协议
@@ -312,6 +316,7 @@ netlify deploy --build --prod
 
 **本地开发**（`.env.local`）：
 - `EXPERIMENTAL_NETLIFY_DB_ENABLED=1` — 启用本地 Postgres
+- `DATABASE_URL` — 外部数据库连接串（如 Neon），设置后优先于本地 Postgres
 - `DEEPSEEK_API_KEY` — DeepSeek API 密钥
 - `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` — 可选的其他提供商
 
@@ -347,6 +352,19 @@ pnpm db:apply && pnpm db:seed
 ### DeepSeek 不执行第二步（execute_typescript）
 
 DeepSeek V4 的 thinking mode 要求在后续 API 调用中回传 `reasoning_content`。适配器已自动处理此问题（`lastReasoningContent` 缓存机制）。如果仍有问题，检查 `.env.local` 中 `DEEPSEEK_API_KEY` 是否有效。
+
+### 使用外部数据库（Neon 等）
+
+在 `.env.local` 中设置 `DATABASE_URL` 即可连接外部 Postgres：
+
+```env
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+```
+
+> 注意：不要使用 `NETLIFY_DB_URL`，Netlify Vite 插件会在启动时覆盖它。设置 `DATABASE_URL` 后，迁移和种子脚本也会自动使用该地址：
+> ```bash
+> pnpm db:apply && pnpm db:seed
+> ```
 
 ### 端口被占用
 

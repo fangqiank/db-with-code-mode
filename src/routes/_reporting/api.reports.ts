@@ -110,6 +110,7 @@ Inside \`execute_typescript\`, these functions add components to a report:
 - \`external_report_sparkline({ reportId, id?, parentId?, data })\` — inline mini chart
 - \`external_report_dataTable({ reportId, id, parentId?, columns, rows, ... })\` — sortable data table. **Wrap in a card too.**
 - \`external_report_progress({ reportId, id?, parentId?, value, max?, label? })\` — progress bar
+- \`external_report_timeline({ reportId, id, parentId?, items, layout?, variant? })\` — timeline of events. Each item has \`id\`, \`title\`, optional \`description\`, \`timestamp\`, and \`variant\` (one of: default, success, warning, error, info). Layout: vertical or horizontal.
 
 **Operations:**
 - \`external_report_update({ reportId, componentId, props })\` — update component props

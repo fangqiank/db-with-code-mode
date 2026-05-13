@@ -843,7 +843,29 @@ const dataTableBinding: ToolBinding = {
   },
   outputSchema: convertSchemaToJsonSchema(z.object({ success: z.boolean() })),
   execute: async (args, context) => {
-    const parsed = dataTableBindingSchema.parse(args)
+    // Normalize columns: accept strings, common aliases for key/label
+    const raw = args as Record<string, unknown>
+    const normalizedArgs = { ...raw }
+    if (Array.isArray(normalizedArgs.columns)) {
+      normalizedArgs.columns = (normalizedArgs.columns as unknown[]).map(
+        (col) => {
+          if (typeof col === 'string') {
+            return { key: col, label: col }
+          }
+          const c = col as Record<string, unknown>
+          const key = c.key ?? c.field ?? c.name ?? c.dataKey
+          return {
+            key,
+            label: c.label ?? c.title ?? c.header ?? key,
+            align: c.align,
+            format: c.format,
+            sortable: c.sortable,
+            width: c.width,
+          }
+        },
+      )
+    }
+    const parsed = dataTableBindingSchema.parse(normalizedArgs)
     const { reportId, parentId, subscriptions, dataSource } = parsed
     const id = parsed.id || generateId('dataTable')
     const emitCustomEvent = context?.emitCustomEvent || (() => {})
@@ -939,6 +961,57 @@ const progressBinding = createReportBinding(
       showValue: input.showValue,
       variant: input.variant,
       size: input.size,
+    },
+  }),
+)
+
+// ============================================================================
+// Timeline Binding
+// ============================================================================
+
+const timelineItemSchema = z.object({
+  id: z.string().describe('Unique ID for this timeline item'),
+  title: z.string().describe('Event title'),
+  description: z.string().optional().describe('Event description'),
+  timestamp: z.string().optional().describe('Timestamp or date label'),
+  variant: z
+    .enum(['default', 'success', 'warning', 'error', 'info'])
+    .catch('default')
+    .describe(
+      'Item style variant. Must be one of: default, success, warning, error, info',
+    ),
+})
+
+const timelineBinding = createReportBinding(
+  'external_report_timeline',
+  'Display a timeline of events in chronological order',
+  z.object({
+    reportId: z.string().describe('ID of the report to add to'),
+    id: z.string().describe('Unique ID for this component'),
+    parentId: z.string().optional().describe('Parent component ID'),
+    items: z
+      .array(timelineItemSchema)
+      .describe('Array of timeline events in order'),
+    layout: z
+      .enum(['vertical', 'horizontal'])
+      .catch('vertical')
+      .describe('Layout direction. Must be one of: vertical, horizontal'),
+    variant: z
+      .enum(['default', 'outlined'])
+      .catch('default')
+      .describe(
+        'Timeline style. Must be one of: default (filled dots), outlined (hollow dots)',
+      ),
+  }),
+  (input) => ({
+    op: 'add' as const,
+    id: input.id,
+    type: 'timeline' as ComponentType,
+    parentId: input.parentId,
+    props: {
+      items: input.items,
+      layout: input.layout,
+      variant: input.variant,
     },
   }),
 )
@@ -1312,6 +1385,8 @@ export const reportBindings: Record<string, ToolBinding> = {
   external_report_sparkline: sparklineBinding,
   external_report_dataTable: dataTableBinding,
   external_report_progress: progressBinding,
+  // Timeline
+  external_report_timeline: timelineBinding,
   // Special
   external_report_placeholder: placeholderBinding,
   external_report_error: errorBinding,

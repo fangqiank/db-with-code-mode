@@ -13,7 +13,7 @@ export {
 } from './content'
 
 // Data components
-export { Chart, Sparkline, DataTable, Progress } from './data'
+export { Chart, Sparkline, DataTable, Progress, Timeline } from './data'
 
 // Special components
 export { Placeholder, ErrorDisplay, Empty } from './special'
