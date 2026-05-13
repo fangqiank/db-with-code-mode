@@ -44,22 +44,11 @@ const DATABASE_SYSTEM_PROMPT = `You are a data analyst assistant. When the user 
 **Step 1:** Call \`new_report\` with id and title.
 **Step 2:** Call \`execute_typescript\` ONCE with ALL the code — fetch data AND build the report UI in the same code block. Do NOT split into multiple calls.
 
-Your execute_typescript code MUST include both data fetching AND visualization in a single code block. Example structure:
-\`\`\`typescript
-// 1. Fetch data
-const { rows: purchases } = await external_queryTable({ table: 'purchases' })
-// 2. Process/aggregate data
-const dailyRevenue = /* aggregate purchases by date */
-// 3. Build report UI
-external_report_card({ reportId, id: 'chart-card', title: 'Daily Revenue' })
-external_report_chart({ reportId, id: 'revenue-chart', parentId: 'chart-card', type: 'line', data: dailyRevenue, xKey: 'date', yKey: 'revenue' })
-external_report_metric({ reportId, parentId: 'metrics-grid', value: totalRevenue, label: 'Total Revenue', format: 'currency' })
-\`\`\`
-
 CRITICAL RULES:
 1. Do NOT just query data and return it — you MUST call external_report_* functions to create visual components.
 2. \`new_report\`, \`list_reports\`, \`delete_report\` are TOOL CALLS, NOT code. Call them as tools outside execute_typescript. NEVER use them inside execute_typescript code.
 3. Inside execute_typescript, ONLY use functions that start with \`external_\` (external_queryTable, external_getSchemaInfo, external_report_*). No other functions exist inside the sandbox.
+4. Keep code SHORT and SIMPLE. Minimize queries — fetch only what you need. Avoid unnecessary variables or verbose logic. Aim for under 4000 characters.
 
 ## Database Schema
 
@@ -117,66 +106,24 @@ Inside \`execute_typescript\`, these functions add components to a report:
 - \`external_report_remove({ reportId, componentId })\` — remove a component
 - \`external_report_reorder({ reportId, parentId, childIds })\` — reorder children
 
-### Example: Sales by Category Report
+### Minimal Example
 
 \`\`\`typescript
-const reportId = 'category-sales'
-
-external_report_text({ reportId, content: 'Sales by Product Category', id: 'title', variant: 'h1' })
-
-// Fetch all purchases
+const reportId = 'sales-report'
 const { rows: purchases } = await external_queryTable({ table: 'purchases' })
-const { rows: products } = await external_queryTable({ table: 'products' })
-
-// Aggregate by category
-const categoryTotals: Record<string, number> = {}
-for (const p of purchases) {
-  const product = products.find((pr: any) => pr.id === p.product_id)
-  if (product) {
-    const cat = product.category as string
-    categoryTotals[cat] = (categoryTotals[cat] || 0) + (p.total as number)
-  }
-}
-
-// Create metric cards
-external_report_grid({ reportId, id: 'metrics-grid', cols: 3, gap: 'md' })
-for (const [category, total] of Object.entries(categoryTotals)) {
-  external_report_card({ reportId, id: \`card-\${category}\`, parentId: 'metrics-grid', title: category })
-  external_report_metric({
-    reportId,
-    parentId: \`card-\${category}\`,
-    value: total,
-    label: 'Total Revenue',
-    format: 'currency',
-    prefix: '$',
-  })
-}
-
-// Create pie chart wrapped in a card
-const chartData = Object.entries(categoryTotals).map(([name, value]) => ({ name, value: Math.round(value) }))
-external_report_card({ reportId, id: 'category-chart-card', title: 'Revenue by Category' })
-external_report_chart({
-  reportId,
-  id: 'category-pie',
-  parentId: 'category-chart-card',
-  type: 'pie',
-  data: chartData,
-  xKey: 'name',
-  yKey: 'value',
-})
-
-return { categoriesAnalyzed: Object.keys(categoryTotals).length }
+const total = purchases.reduce((s: number, p: any) => s + (p.total as number), 0)
+external_report_card({ reportId, id: 'card1', title: 'Total Revenue' })
+external_report_metric({ reportId, parentId: 'card1', value: total, label: 'Revenue', format: 'currency' })
+return { total }
 \`\`\`
 
 ### Best Practices
 
-1. **Always wrap charts in cards** — Every \`external_report_chart\` call must be a child of an \`external_report_card\`. Create the card first with a descriptive \`title\`, then add the chart with \`parentId\` set to the card's id. This gives each chart its own framed surface and a clear label. The same applies to \`external_report_dataTable\` — wrap tables in cards too.
-2. **Create containers first, then content** — Add cards/sections before adding metrics/charts to them
-3. **Use meaningful IDs** — Makes it easier to update or reference components later
-4. **Fetch data progressively** — Add each metric/chart as data arrives, don't wait for all data
-5. **Use parentId to nest** — Components without parentId go to the root level
-6. **Keep reports focused** — One report per analysis topic
-7. **Use queryTable to get data** — Then process/aggregate in code before visualizing
+1. **Keep code SHORT** — under 4000 chars. Minimize DB queries.
+2. **Wrap charts/tables in cards** — create card first, then add chart with \`parentId\`.
+3. **Create containers first, then content**.
+4. **Use parentId to nest** — components without parentId go to root.
+5. **One report per topic.**
 `
 
 let codeModeCache: {
@@ -193,7 +140,7 @@ async function getCodeModeTools() {
     const { tool, systemPrompt } = createCodeMode({
       driver,
       tools: databaseTools,
-      timeout: 60000,
+      timeout: 25000,
       memoryLimit: 128,
       getSkillBindings: async () => createReportBindings(),
     })
