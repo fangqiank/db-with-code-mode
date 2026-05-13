@@ -3,7 +3,6 @@
   publish = "dist/client"
 [build.environment]
   NODE_VERSION = "24"
-  EXPERIMENTAL_NETLIFY_DB_ENABLED = "false"
 [dev]
   command = "pnpm run dev"
   targetPort = 3000
