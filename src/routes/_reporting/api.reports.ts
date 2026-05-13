@@ -187,6 +187,8 @@ let codeModeCache: {
 async function getCodeModeTools() {
   if (!codeModeCache) {
     const { createIsolateDriver } = await import('#/lib/create-isolate-driver')
+    // Use 'node' (isolated-vm) locally where native binary is available;
+    // falls back to QuickJS automatically on platforms without the binary.
     const driver = await createIsolateDriver('node')
     const { tool, systemPrompt } = createCodeMode({
       driver,

@@ -25,9 +25,9 @@ export async function createIsolateDriver(
         const { createNodeIsolateDriver } =
           await import('@tanstack/ai-isolate-node')
         driver = createNodeIsolateDriver()
-      } catch (err) {
+      } catch {
         console.warn(
-          `[createIsolateDriver] Node isolate driver unavailable, falling back to QuickJS: ${err instanceof Error ? err.message : String(err)}`,
+          '[createIsolateDriver] Node isolate unavailable, using QuickJS',
         )
         const { createQuickJSIsolateDriver } =
           await import('@tanstack/ai-isolate-quickjs')

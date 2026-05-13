@@ -68,6 +68,7 @@ const serverExternal = [
   'esbuild',
   'pg',
   'isolated-vm',
+  '@tanstack/ai-isolate-node',
   'quickjs-emscripten',
   'quickjs-emscripten-core',
   '@jitl/quickjs-wasmfile-release-asyncify',
